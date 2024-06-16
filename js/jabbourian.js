@@ -235,6 +235,7 @@ function jabbourianJS(text){
     cwsArray = new Array();
     noArray = new Array();
     quantArray = new Array();
+    quoteArray = new Array();
     /*Errors for each infraction*/
     errors = 0;
     lyErrors = 0;
@@ -247,6 +248,7 @@ function jabbourianJS(text){
     cwsError = 0;
     noError = 0;
     quantError = 0;
+    quoteErrors = 0;
 
     for(var i = 0; i < textArray.length; i++){
         if(textArray[i].match(/ly$/)){
@@ -262,6 +264,11 @@ function jabbourianJS(text){
         else if(textArray[i] == "'"){
             appostArray[i] = true;
             appostErrors++;
+            errors++;
+        }
+        else if(textArray[i] == "\""){
+            quoteArray[i] = true;
+            quoteErrors++;
             errors++;
         }
         else if(textArray[i] ==  "."){
@@ -358,6 +365,9 @@ function jabbourianJS(text){
         else if(quantArray[i] == true){
             resultOutput = resultOutput + "<span style=\"text-decoration: green wavy underline;\" onmouseover=\"showWarning(10)\">" + textArray[i] + "</span>";
         }
+        else if(quoteArray[i] == true){
+            resultOutput = resultOutput + "<span style=\"text-decoration: red wavy underline;\" onmouseover=\"showWarning(11)\">" + textArray[i] + "</span>";
+        }
         else if(textArray[i].match(/\n$/)){
             resultOutput = resultOutput + "<br/>";
         }
@@ -404,6 +414,7 @@ function calculateJabScore(lyErrors, ingErrors, appostErrors, prepositionErrors,
     cwsWeight = 1.5;
     noWeight = .5;
     quantWeight = 1.0;
+    quoteWeight = 0.5;
 
     //Error Cap- Max an error can deduct dependent on lenght. 
     //You calculate avg number of sentences and then deduct how much 
@@ -420,6 +431,7 @@ function calculateJabScore(lyErrors, ingErrors, appostErrors, prepositionErrors,
     cwsMax = .5 *  Math.ceil(length/avgWordsInSentence);
     noMax = 1 *  Math.ceil(length/avgWordsInSentence);
     quantMax = 1.0 *  Math.ceil(length/avgWordsInSentence);
+    quoteMax = 0.5 *  Math.ceil(length/avgWordsInSentence);
 
     if((lyErrors * lyWeight) > lyMax ){
         toReturn += lyMax;
@@ -480,6 +492,12 @@ function calculateJabScore(lyErrors, ingErrors, appostErrors, prepositionErrors,
     } else {
         toReturn += (quantError * quantWeight);
     }
+
+    if((quoteErrors * quoteWeight) > quoteMax){
+        toReturn += quoteMax;
+    } else {
+        toReturn += (quoteErrors * quoteWeight);
+    }
     toReturn = Math.round(((1-((toReturn*severityScore) / (numSents/2))) * 100)/5);
 
     return toReturn
@@ -502,7 +520,7 @@ function showWarning(error){
             warning.innerHTML = "Avoid use of -ing words";
             break;
         case 3:
-            warning.innerHTML = "Avoid using quotation marks. Use your own words to cite a reference";
+            warning.innerHTML = "Do not use apostrophes.";
             break;
         case 4:
             warning.innerHTML = "Do not end a sentence with a preposition";
@@ -524,6 +542,9 @@ function showWarning(error){
             break;
         case 10:
             warning.innerHTML = "Use quantitative adverbs like 'few', 'some', 'many',and 'most' with care. They refer to plurality any way you count them. 'Most' equals at least 50 percent";
+            break;
+        case 11:
+            warning.innerHTML = "Avoid using quotation marks. Use your own words to cite a reference.";
             break;
         case 501:
             warning.innerHTML = "Jabbourian.JS can only parse \".docx\" files. Please convert to this format or use the template!";
